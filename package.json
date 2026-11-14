@@ -1,0 +1,24 @@
+{
+  "name": "crib-emoji",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Discord slash command that copies an emoji into your server from its link",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "register": "tsx --env-file-if-exists=.env scripts/register.ts",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vercel/functions": "^3.11.3",
+    "discord-interactions": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
