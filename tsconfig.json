@@ -4,6 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2023", "DOM"],
+    "typeRoots": ["./node_modules/@types"],
     "types": ["node"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
