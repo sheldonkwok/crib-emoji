@@ -415,20 +415,29 @@ test('unexpected error -> generic failure, logged, no leak', async (t) => {
   t.mock.method(console, 'error', (...args: unknown[]) => {
     errors.push(args);
   });
-  const { deps, calls, settle } = makeDeps([
-    (call) => {
-      if (call.method === 'GET') throw new TypeError(`boom ${BOT_TOKEN}`);
-      return undefined;
-    },
-    editOriginalRoute,
-  ]);
+  const { deps: baseDeps, calls, settle } = makeDeps([editOriginalRoute]);
+  // A CDN "response" that is not a Response at all makes downloadEmoji throw a
+  // plain TypeError (not a CribError), exercising the generic-failure path.
+  const deps: Deps = {
+    ...baseDeps,
+    fetch: (async (input: string | URL | Request, init?: RequestInit) => {
+      const method = (init?.method ?? 'GET').toUpperCase();
+      if (method === 'GET') {
+        calls.push({ url: String(input), method, headers: new Headers(), body: undefined });
+        return { headers: null, secret: BOT_TOKEN } as unknown as Response;
+      }
+      return baseDeps.fetch(input, init);
+    }) as typeof fetch,
+  };
   const res = await handleInteraction(signedRequest(commandPayload({})), ENV, deps);
   assert.deepEqual(await readJson(res), { type: 5 });
   await settle();
 
+  assert.ok(errors.length >= 1, 'unexpected errors should be logged');
   const content = patchContent(calls);
   assert.match(content, /^Could not crib/);
-  assert.ok(!content.includes('boom'));
+  assert.match(content, /went wrong/);
+  assert.ok(!content.includes('TypeError'));
   assert.ok(!content.includes(BOT_TOKEN));
 });
 
